@@ -13,8 +13,8 @@ class HomeViewController: UIViewController {
     private weak var activityIndicator: UIActivityIndicatorView?
     private weak var taskTableView: TaskTableView?
 
-    init(taskViewModel: TasksController) {
-        self.tasksController = taskViewModel
+    init(tasksController: TasksController) {
+        self.tasksController = tasksController
         super.init(nibName: nil, bundle: nil)
         self.tasksController.delegate = self
     }
@@ -81,7 +81,7 @@ extension HomeViewController: TasksControllerDelegate {
 }
 
 extension HomeViewController: TaskTableViewDelegate {
-    func delete(task: TaskModel) {
+    func userSwipedToDeleted(task: TaskModel) {
         tasksController.delete(task: task, skipDelegateCallback: true)
     }
 }

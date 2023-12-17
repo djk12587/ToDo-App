@@ -8,7 +8,7 @@
 import UIKit
 
 protocol TaskTableViewDelegate: AnyObject {
-    func delete(task: TaskModel)
+    func userSwipedToDeleted(task: TaskModel)
 }
 
 extension HomeViewController {
@@ -67,7 +67,7 @@ extension HomeViewController {
                 guard let taskToDelete = self?.diffableDataSource.snapshot().itemIdentifiers[indexPath.row].getTask else { handler(false); return }
 
                 self?.delete(task: taskToDelete, animationsDidComplete: {
-                    self?.userActionDelegate?.delete(task: taskToDelete)
+                    self?.userActionDelegate?.userSwipedToDeleted(task: taskToDelete)
                     handler(true)
                 })
             }

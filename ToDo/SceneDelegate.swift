@@ -22,7 +22,7 @@ extension SceneDelegate {
     private func bootUp(in window: UIWindow) {
         do {
             let persistedTaskService = try PersistedTaskService()
-            let navigationController = UINavigationController(rootViewController: HomeViewController(taskViewModel: TasksController(persistedTaskServiceLayer: persistedTaskService)))
+            let navigationController = UINavigationController(rootViewController: HomeViewController(tasksController: TasksController(persistedTaskServiceLayer: persistedTaskService)))
             navigationController.navigationBar.prefersLargeTitles = true
             window.rootViewController = navigationController
             window.makeKeyAndVisible()
