@@ -8,12 +8,12 @@
 import Foundation
 import SwiftData
 
-protocol PersistedTaskServiceLayer {
+protocol PersistedTaskServiceLayer: Sendable {
     func getTasks() async throws -> [TaskModel]
     func create() async throws -> TaskModel
     func update(taskModel: TaskModel) async throws
     func delete(taskModel: TaskModel) async throws
-    init() async throws
+    init() throws
 }
 
 actor PersistedTaskService: ModelActor, PersistedTaskServiceLayer {
@@ -21,13 +21,15 @@ actor PersistedTaskService: ModelActor, PersistedTaskServiceLayer {
     let modelContainer: ModelContainer
     let modelExecutor: ModelExecutor
 
-    init() async throws {
+    init() throws {
         let modelContainer = try ModelContainer(for: PersistedTask.self)
         self.modelContainer = modelContainer
-        self.modelExecutor = await Task.detached {
-            let context = ModelContext(modelContainer) // Creating the model context off the main thread ensures CRUD operations run on a background thread
-            return DefaultSerialModelExecutor(modelContext: context)
-        }.value
+        self.modelExecutor = DefaultSerialModelExecutor(modelContext: ModelContext(modelContainer))
+        // think about how to get this to run on a background thread
+//        self.modelExecutor = await Task.detached {
+//            let context = ModelContext(modelContainer) // Creating the model context off the main thread ensures CRUD operations run on a background thread
+//            return DefaultSerialModelExecutor(modelContext: context)
+//        }.value
     }
 
     func getTasks() async throws -> [TaskModel] {
@@ -37,6 +39,7 @@ actor PersistedTaskService: ModelActor, PersistedTaskServiceLayer {
 
     func create() async throws -> TaskModel {
         let newTask = PersistedTask()
+        newTask.text = UUID().uuidString
         modelContext.insert(newTask)
         try modelContext.save()
         return newTask.toTaskModel

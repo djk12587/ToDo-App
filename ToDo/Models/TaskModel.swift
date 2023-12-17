@@ -8,8 +8,8 @@
 import Foundation
 import SwiftData
 
-struct TaskModel: Sendable {
-    
+struct TaskModel: Equatable, Hashable {
+
     let id: UUID
     var text: String
     let creationDate: Date
@@ -24,4 +24,12 @@ struct TaskModel: Sendable {
         self.isCompleted = isCompleted
         self.persistentModelID = persistentModelID
     }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(text)
+        hasher.combine(isCompleted)
+    }
 }
+
+
