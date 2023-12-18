@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 
-protocol PersistedTaskServiceLayer {
+protocol PersistedTaskServiceType {
     func getTasks() async throws -> [TaskModel]
     func create(text: String) async throws -> TaskModel
     func update(taskModel: TaskModel) async throws
@@ -16,7 +16,7 @@ protocol PersistedTaskServiceLayer {
     init() async throws
 }
 
-actor PersistedTaskService: ModelActor, PersistedTaskServiceLayer {
+actor PersistedTaskService: ModelActor, PersistedTaskServiceType {
 
     let modelContainer: ModelContainer
     let modelExecutor: ModelExecutor

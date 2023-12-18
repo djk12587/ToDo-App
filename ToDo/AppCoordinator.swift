@@ -13,8 +13,8 @@ class AppCoordinator {
     private weak var tasksViewController: TasksViewController?
     private weak var taskViewController: TaskViewController?
 
-    private var _persistedTaskService: PersistedTaskServiceLayer?
-    private var persistedTaskService: PersistedTaskServiceLayer {
+    private var _persistedTaskService: PersistedTaskServiceType?
+    private var persistedTaskService: PersistedTaskServiceType {
         get async throws {
             if let persistedTaskService = _persistedTaskService {
                 return persistedTaskService
@@ -26,7 +26,7 @@ class AppCoordinator {
         }
     }
 
-    init(persistedTaskService: PersistedTaskServiceLayer? = nil, mainWindow: UIWindow) {
+    init(persistedTaskService: PersistedTaskServiceType? = nil, mainWindow: UIWindow) {
         self._persistedTaskService = persistedTaskService
         self.mainWindow = mainWindow
     }
