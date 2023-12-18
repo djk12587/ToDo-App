@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 
-protocol PersistedTaskServiceLayer: Sendable {
+protocol PersistedTaskServiceLayer {
     func getTasks() async throws -> [TaskModel]
     func create(text: String) async throws -> TaskModel
     func update(taskModel: TaskModel) async throws
