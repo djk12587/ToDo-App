@@ -39,7 +39,6 @@ actor PersistedTaskService: ModelActor, PersistedTaskServiceLayer {
 
     func create() async throws -> TaskModel {
         let newTask = PersistedTask()
-        newTask.text = UUID().uuidString
         modelContext.insert(newTask)
         try modelContext.save()
         return newTask.toTaskModel

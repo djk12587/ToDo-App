@@ -12,6 +12,7 @@ class AppCoordinator {
     private let mainWindow: UIWindow
     private let persistedTaskService: PersistedTaskServiceLayer
     private weak var tasksViewController: TasksViewController?
+    private weak var taskViewController: TaskViewController?
 
     init(persistedTaskService: PersistedTaskServiceLayer? = nil, mainWindow: UIWindow) throws {
         self.persistedTaskService = try (persistedTaskService ?? PersistedTaskService())
@@ -56,20 +57,9 @@ extension AppCoordinator: TasksViewControllerDelegate {
     }
 
     func userWantsToCreateTask() {
-        Task(priority: .userInitiated) {
-            do {
-                let task = try await persistedTaskService.create()
-                await tasksViewController?.add(new: task)
-            } catch {
-                if let tasksViewController = tasksViewController {
-                    await MainActor.run {
-                        let alertController = UIAlertController(title: "Failed to create task", message: error.localizedDescription, preferredStyle: .alert)
-                        alertController.addAction(UIAlertAction(title: "ok", style: .default))
-                        tasksViewController.present(alertController, animated: true)
-                    }
-                }
-            }
-        }
+        let taskViewController = TaskViewController(edit: nil, delegate: self)
+        self.taskViewController = taskViewController
+        tasksViewController?.present(taskViewController, animated: true)
     }
 
     func userDeleted(task: TaskModel) {
@@ -108,6 +98,32 @@ extension AppCoordinator: TasksViewControllerDelegate {
 }
 
 extension AppCoordinator: TaskViewControllerDelegate {
+
+    func createTask() {
+        Task(priority: .userInitiated) {
+            do {
+                let task = try await persistedTaskService.create()
+                if let taskViewController = taskViewController, let tasksViewController = tasksViewController {
+                    await MainActor.run {
+                        taskViewController.set(task: task)
+                        tasksViewController.add(new: task)
+                    }
+                }
+            } catch {
+                if let taskViewController = taskViewController {
+                    await MainActor.run {
+                        let alertController = UIAlertController(title: "Failed to create task", message: "error.localizedDescription", preferredStyle: .alert)
+                        let okAction = UIAlertAction(title: "ok", style: .default) { _ in
+                            taskViewController.dismiss(animated: true)
+                        }
+                        alertController.addAction(okAction)
+                        taskViewController.present(alertController, animated: true)
+                    }
+                }
+            }
+        }
+    }
+    
     func taskDidChange(task: TaskModel) {
         Task(priority: .userInitiated) {
             do {
