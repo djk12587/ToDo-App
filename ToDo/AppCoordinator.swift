@@ -99,31 +99,23 @@ extension AppCoordinator: TasksViewControllerDelegate {
 
 extension AppCoordinator: TaskViewControllerDelegate {
 
-    func createTask() {
+    func create(taskText: String) {
         Task(priority: .userInitiated) {
             do {
-                let task = try await persistedTaskService.create()
-                if let taskViewController = taskViewController, let tasksViewController = tasksViewController {
-                    await MainActor.run {
-                        taskViewController.set(task: task)
-                        tasksViewController.add(new: task)
-                    }
-                }
+                let task = try await persistedTaskService.create(text: taskText)
+                await tasksViewController?.add(new: task)
             } catch {
-                if let taskViewController = taskViewController {
+                if let tasksViewController = tasksViewController {
                     await MainActor.run {
-                        let alertController = UIAlertController(title: "Failed to create task", message: "error.localizedDescription", preferredStyle: .alert)
-                        let okAction = UIAlertAction(title: "ok", style: .default) { _ in
-                            taskViewController.dismiss(animated: true)
-                        }
-                        alertController.addAction(okAction)
-                        taskViewController.present(alertController, animated: true)
+                        let alertController = UIAlertController(title: "Failed to save task", message: error.localizedDescription, preferredStyle: .alert)
+                        alertController.addAction(UIAlertAction(title: "ok", style: .default))
+                        tasksViewController.present(alertController, animated: true)
                     }
                 }
             }
         }
     }
-    
+
     func taskDidChange(task: TaskModel) {
         Task(priority: .userInitiated) {
             do {
@@ -133,6 +125,7 @@ extension AppCoordinator: TaskViewControllerDelegate {
                 if let tasksViewController = tasksViewController {
                     await MainActor.run {
                         let alertController = UIAlertController(title: "Failed to update task", message: error.localizedDescription, preferredStyle: .alert)
+                        alertController.addAction(UIAlertAction(title: "ok", style: .default))
                         tasksViewController.present(alertController, animated: true)
                     }
                 }

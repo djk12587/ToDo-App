@@ -10,7 +10,7 @@ import SwiftData
 
 protocol PersistedTaskServiceLayer: Sendable {
     func getTasks() async throws -> [TaskModel]
-    func create() async throws -> TaskModel
+    func create(text: String) async throws -> TaskModel
     func update(taskModel: TaskModel) async throws
     func delete(taskModel: TaskModel) async throws
     init() throws
@@ -37,8 +37,8 @@ actor PersistedTaskService: ModelActor, PersistedTaskServiceLayer {
         return try modelContext.fetch(fetchDescription).toTaskModels
     }
 
-    func create() async throws -> TaskModel {
-        let newTask = PersistedTask()
+    func create(text: String) async throws -> TaskModel {
+        let newTask = PersistedTask(text: text)
         modelContext.insert(newTask)
         try modelContext.save()
         return newTask.toTaskModel

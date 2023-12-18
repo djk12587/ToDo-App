@@ -15,7 +15,7 @@ import SwiftData
     let creationDate: Date
     var isCompleted = false
 
-    init(text: String = "") {
+    init(text: String) {
         id = UUID()
         self.text = text
         let now = Date.now

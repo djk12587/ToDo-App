@@ -9,29 +9,27 @@ import UIKit
 
 protocol TaskViewControllerDelegate: AnyObject {
     func taskDidChange(task: TaskModel)
-    func createTask()
+    func create(taskText: String)
 }
 
 class TaskViewController: UIViewController {
 
+    private var taskText: String
     private var originalTask: TaskModel?
     private var task: TaskModel?
     private weak var delegate: TaskViewControllerDelegate?
     private weak var textView: UITextView?
     private weak var activityIndicator: UIActivityIndicatorView?
-    private var showKeyboard = false
+    private let showKeyboard: Bool
 
     init(edit task: TaskModel?, delegate: TaskViewControllerDelegate?) {
         self.originalTask = task
         self.task = task
         self.delegate = delegate
-        if task == nil {
-            //only show the keyboard when creating a new task
-            showKeyboard = true
-        }
+        showKeyboard = task == nil
+        taskText = task?.text ?? ""
         super.init(nibName: nil, bundle: nil)
         presentationController?.delegate = self
-        delegate?.createTask()
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -48,9 +46,6 @@ class TaskViewController: UIViewController {
         super.viewDidLoad()
 
         setupUI()
-        if task == nil {
-            activityIndicator?.startAnimating()
-        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -72,25 +67,20 @@ class TaskViewController: UIViewController {
     }
 }
 
-// Public functions
-extension TaskViewController {
-    func set(task: TaskModel) {
-        activityIndicator?.stopAnimating()
-        self.task = task
-        originalTask = task
-    }
-}
-
 extension TaskViewController: UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
-        task?.text = textView.text
+        let text = textView.text ?? ""
+        task?.text = text
+        taskText = text
     }
 }
 
 extension TaskViewController: UIAdaptivePresentationControllerDelegate {
     func presentationControllerWillDismiss(_ presentationController: UIPresentationController) {
-        if let task = task, originalTask != task {
+        if let task = task, !task.text.isEmpty, originalTask != task {
             delegate?.taskDidChange(task: task)
+        } else if task == nil, !taskText.isEmpty {
+            delegate?.create(taskText: taskText)
         }
     }
 }
