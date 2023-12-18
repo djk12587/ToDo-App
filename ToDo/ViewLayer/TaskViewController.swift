@@ -19,11 +19,16 @@ class TaskViewController: UIViewController {
     private weak var delegate: TaskViewControllerDelegate?
     private weak var textView: UITextView?
     private weak var activityIndicator: UIActivityIndicatorView?
+    private var showKeyboard = false
 
     init(edit task: TaskModel?, delegate: TaskViewControllerDelegate?) {
         self.originalTask = task
         self.task = task
         self.delegate = delegate
+        if task == nil {
+            //only show the keyboard when creating a new task
+            showKeyboard = true
+        }
         super.init(nibName: nil, bundle: nil)
         presentationController?.delegate = self
         delegate?.createTask()
@@ -50,7 +55,9 @@ class TaskViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        textView?.becomeFirstResponder()
+        if showKeyboard {
+            textView?.becomeFirstResponder()
+        }
     }
 
     private func setupUI() {
