@@ -37,7 +37,7 @@ class TaskTableViewCell: UITableViewCell {
         label?.textColor = task.isCompleted ? .systemRed : .label
 
         var prefixedTaskText = String(task.text.prefix(140))
-        if prefixedTaskText.count > 140 {
+        if task.text.count > 140 {
             prefixedTaskText.append("...")
         }
         label?.text = prefixedTaskText
