@@ -19,7 +19,6 @@ class TaskViewController: UIViewController {
     private var task: TaskModel?
     private weak var delegate: TaskViewControllerDelegate?
     private weak var textView: UITextView?
-    private weak var activityIndicator: UIActivityIndicatorView?
     private let showKeyboard: Bool
 
     init(edit task: TaskModel?, delegate: TaskViewControllerDelegate?) {
@@ -43,29 +42,12 @@ class TaskViewController: UIViewController {
         self.textView = textView
     }
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        setupUI()
-    }
-
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
         if showKeyboard {
             textView?.becomeFirstResponder()
         }
-    }
-
-    private func setupUI() {
-        let activityIndicatorView = UIActivityIndicatorView(style: .large)
-        activityIndicatorView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(activityIndicatorView)
-        self.activityIndicator = activityIndicatorView
-        NSLayoutConstraint.activate([
-            activityIndicatorView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            activityIndicatorView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
-        ])
     }
 }
 
