@@ -15,7 +15,7 @@ struct TaskModel: Equatable, Hashable {
     let creationDate: Date
     var isCompleted = false
 
-    let persistentModelID: PersistentIdentifier // An identifier that maps to a PersistantTask
+    let persistentModelID: PersistentIdentifier // An identifier that maps to a PersistedTask
 
     init(id: UUID, text: String, creationDate: Date, isCompleted: Bool, persistentModelID: PersistentIdentifier) {
         self.id = id

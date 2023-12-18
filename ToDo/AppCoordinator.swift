@@ -26,7 +26,7 @@ class AppCoordinator {
         }
     }
 
-    init(persistedTaskService: PersistedTaskServiceLayer? = nil, mainWindow: UIWindow) throws {
+    init(persistedTaskService: PersistedTaskServiceLayer? = nil, mainWindow: UIWindow) {
         self._persistedTaskService = persistedTaskService
         self.mainWindow = mainWindow
     }

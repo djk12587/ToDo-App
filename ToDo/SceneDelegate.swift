@@ -15,27 +15,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
         let window = UIWindow(windowScene: windowScene)
         self.window = window
-        bootUp(in: window)
-    }
-}
 
-extension SceneDelegate {
-    private func bootUp(in window: UIWindow) {
-        do {
-            let appCoordinator = try AppCoordinator(mainWindow: window)
-            self.appCoordinator = appCoordinator
-            appCoordinator.showTasksViewController()
-        } catch {
-            let blankViewController = UIViewController()
-            window.rootViewController = blankViewController
-            window.makeKeyAndVisible()
-            let alertController = UIAlertController(title: "Something went wrong", message: error.localizedDescription, preferredStyle: .alert)
-            let fatalAction = UIAlertAction(title: "ok", style: .destructive) { _ in
-                fatalError(error.localizedDescription)
-            }
-            alertController.addAction(fatalAction)
-            blankViewController.present(alertController, animated: true)
-        }
+        let appCoordinator = AppCoordinator(mainWindow: window)
+        self.appCoordinator = appCoordinator
+        appCoordinator.showTasksViewController()
     }
 }
 
