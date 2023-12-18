@@ -9,6 +9,7 @@ import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
+    private var appCoordinator: AppCoordinator?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
@@ -21,11 +22,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 extension SceneDelegate {
     private func bootUp(in window: UIWindow) {
         do {
-            let persistedTaskService = try PersistedTaskService()
-            let navigationController = UINavigationController(rootViewController: HomeViewController(tasksController: TasksController(persistedTaskServiceLayer: persistedTaskService)))
-            navigationController.navigationBar.prefersLargeTitles = true
-            window.rootViewController = navigationController
-            window.makeKeyAndVisible()
+            let appCoordinator = try AppCoordinator(mainWindow: window)
+            self.appCoordinator = appCoordinator
+            appCoordinator.showTasksViewController()
         } catch {
             let blankViewController = UIViewController()
             window.rootViewController = blankViewController

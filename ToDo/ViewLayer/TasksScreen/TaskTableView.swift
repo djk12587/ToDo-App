@@ -9,9 +9,11 @@ import UIKit
 
 protocol TaskTableViewDelegate: AnyObject {
     func userSwipedToDeleted(task: TaskModel)
+    func userUpdated(task: TaskModel)
+    func userTapped(task: TaskModel)
 }
 
-extension HomeViewController {
+extension TasksViewController {
     class TaskTableView: UITableView, UITableViewDelegate {
 
         private weak var userActionDelegate: TaskTableViewDelegate?
@@ -35,51 +37,69 @@ extension HomeViewController {
             })
         }()
 
-        func updateDataSource(tasks: [TaskModel], animationsDidComplete: (() -> Void)? = nil) {
+        func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+            tableView.deselectRow(at: indexPath, animated: true)
+            let selectedTask = diffableDataSource.snapshot().itemIdentifiers[indexPath.row]
+            userActionDelegate?.userTapped(task: selectedTask.getTask)
+        }
+
+        func updateDataSource(tasks: [TaskModel], updateDidComplete: (() -> Void)? = nil) {
             var snapShot = NSDiffableDataSourceSnapshot<SectionType, CellType>()
             snapShot.appendSections([.tasks])
             let cellTypes: [CellType] = tasks.compactMap { taskModel in
                 return .task(taskModel)
             }
             snapShot.appendItems(cellTypes, toSection: .tasks)
-            diffableDataSource.apply(snapShot, animatingDifferences: true, completion: animationsDidComplete)
+            diffableDataSource.apply(snapShot, animatingDifferences: true, completion: updateDidComplete)
         }
 
-        func insert(new task: TaskModel, animationsDidComplete: (() -> Void)? = nil) {
+        func insert(new task: TaskModel, updateDidComplete: (() -> Void)? = nil) {
             var taskItems = diffableDataSource.snapshot().itemIdentifiers
             guard !taskItems.isEmpty else {
-                updateDataSource(tasks: [task], animationsDidComplete: animationsDidComplete)
+                updateDataSource(tasks: [task], updateDidComplete: updateDidComplete)
                 return
             }
             taskItems.insert(.task(task), at: 0)
-            updateDataSource(tasks: taskItems.getTasks, animationsDidComplete: animationsDidComplete)
+            updateDataSource(tasks: taskItems.getTasks, updateDidComplete: updateDidComplete)
         }
 
-        func delete(task: TaskModel, animationsDidComplete: (() -> Void)? = nil) {
+        func delete(task: TaskModel, updateDidComplete: (() -> Void)? = nil) {
             var taskItems = diffableDataSource.snapshot().itemIdentifiers
-            guard let indexToRemove = taskItems.firstIndex(of: CellType.task(task)) else { return }
-            taskItems.remove(at: indexToRemove)
-            updateDataSource(tasks: taskItems.getTasks, animationsDidComplete: animationsDidComplete)
+            guard let indexOfTaskToDelete = taskItems.firstIndex(of: CellType.task(task)) else { return }
+            taskItems.remove(at: indexOfTaskToDelete)
+            updateDataSource(tasks: taskItems.getTasks, updateDidComplete: updateDidComplete)
+        }
+
+        func update(task: TaskModel, updateDidComplete: (() -> Void)? = nil) {
+            var taskItems = diffableDataSource.snapshot().itemIdentifiers
+            guard let taskCellToUpdateIndex = taskItems.firstIndex(where: { $0.getTask.id == task.id }) else { return  }
+            taskItems[taskCellToUpdateIndex] = CellType.task(task)
+            updateDataSource(tasks: taskItems.getTasks, updateDidComplete: updateDidComplete)
         }
 
         func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-            let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] action, view, handler in
-                guard let taskToDelete = self?.diffableDataSource.snapshot().itemIdentifiers[indexPath.row].getTask else { handler(false); return }
+            var task = diffableDataSource.snapshot().itemIdentifiers[indexPath.row].getTask
 
-                self?.delete(task: taskToDelete, animationsDidComplete: {
-                    self?.userActionDelegate?.userSwipedToDeleted(task: taskToDelete)
-                    handler(true)
-                })
+            let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] action, view, handler in
+                self?.userActionDelegate?.userSwipedToDeleted(task: task)
+                handler(true)
             }
             deleteAction.backgroundColor = .systemRed
-            let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
+
+            let completeTaskAction = UIContextualAction(style: .normal, title: task.isCompleted ? "Incomplete" : "Complete") { [weak self] action, view, handler in
+                task.isCompleted = !task.isCompleted
+                self?.userActionDelegate?.userUpdated(task: task)
+                handler(true)
+            }
+
+            let configuration = UISwipeActionsConfiguration(actions: [deleteAction, completeTaskAction])
             configuration.performsFirstActionWithFullSwipe = true
             return configuration
         }
     }
 }
 
-extension HomeViewController.TaskTableView {
+extension TasksViewController.TaskTableView {
     // One small annoyance with diffable datasources... you have to subclass UITableViewDiffableDataSource to enable swiping of cells
     // https://stackoverflow.com/a/58116755
     private class SwipeableDataSource: UITableViewDiffableDataSource<SectionType, CellType> {
@@ -104,7 +124,7 @@ extension HomeViewController.TaskTableView {
     }
 }
 
-private extension Array where Element == HomeViewController.TaskTableView.CellType {
+private extension Array where Element == TasksViewController.TaskTableView.CellType {
     var getTasks: [TaskModel] {
         return compactMap { $0.getTask }
     }

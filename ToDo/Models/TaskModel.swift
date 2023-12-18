@@ -31,5 +31,3 @@ struct TaskModel: Equatable, Hashable {
         hasher.combine(isCompleted)
     }
 }
-
-

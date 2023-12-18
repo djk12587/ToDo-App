@@ -1,5 +1,5 @@
 //
-//  HomeViewController.swift
+//  TasksViewController.swift
 //  ToDo
 //
 //  Created by Dan Koza on 12/13/23.
@@ -7,16 +7,23 @@
 
 import UIKit
 
-class HomeViewController: UIViewController {
+protocol TasksViewControllerDelegate: AnyObject {
+    func getTasks()
+    func userWantsToCreateTask()
+    func userDeleted(task: TaskModel)
+    func userUpdated(task: TaskModel)
+    func userTapped(task: TaskModel)
+}
 
-    private let tasksController: TasksController
+class TasksViewController: UIViewController {
+
+    private weak var delegate: TasksViewControllerDelegate?
     private weak var activityIndicator: UIActivityIndicatorView?
     private weak var taskTableView: TaskTableView?
 
-    init(tasksController: TasksController) {
-        self.tasksController = tasksController
+    init(delegate: TasksViewControllerDelegate?) {
+        self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
-        self.tasksController.delegate = self
     }
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -31,7 +38,7 @@ class HomeViewController: UIViewController {
         super.viewDidLoad()
 
         setupUI()
-        tasksController.loadTasks()
+        getTasks()
     }
 
     private func setupUI() {
@@ -55,33 +62,46 @@ class HomeViewController: UIViewController {
     }
 
     @objc private func createTaskButtonWasPressed() {
-        tasksController.createTask()
+        delegate?.userWantsToCreateTask()
     }
 }
 
-extension HomeViewController: TasksControllerDelegate {
-    func startedGettingTasks() {
+// Public functions
+extension TasksViewController {
+    func getTasks() {
         activityIndicator?.startAnimating()
+        delegate?.getTasks()
     }
-    
-    func getTasks(result: Result<[TaskModel], Error>) {
+
+    func delete(task: TaskModel) {
+        taskTableView?.delete(task: task)
+    }
+
+    func update(task: TaskModel) {
+        taskTableView?.update(task: task)
+    }
+
+    func show(tasks: [TaskModel]) {
         activityIndicator?.stopAnimating()
-        if case .success(let tasks) = result {
-            taskTableView?.updateDataSource(tasks: tasks)
-        }
+        taskTableView?.updateDataSource(tasks: tasks)
     }
 
-    func taskWasCreated(result: Result<TaskModel, Error>) {
-        if case .success(let task) = result {
-            taskTableView?.insert(new: task)
-        }
+    func add(new task: TaskModel) {
+        taskTableView?.insert(new: task)
     }
-
-    func taskWasDeleted(result: Result<TaskModel, Error>) {}
 }
 
-extension HomeViewController: TaskTableViewDelegate {
+extension TasksViewController: TaskTableViewDelegate {
+
+    func userTapped(task: TaskModel) {
+        delegate?.userTapped(task: task)
+    }
+
     func userSwipedToDeleted(task: TaskModel) {
-        tasksController.delete(task: task, skipDelegateCallback: true)
+        delegate?.userDeleted(task: task)
+    }
+
+    func userUpdated(task: TaskModel) {
+        delegate?.userUpdated(task: task)
     }
 }
