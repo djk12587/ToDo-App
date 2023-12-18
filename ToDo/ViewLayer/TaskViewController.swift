@@ -79,7 +79,7 @@ extension TaskViewController: UITextViewDelegate {
 
 extension TaskViewController: UIAdaptivePresentationControllerDelegate {
     func presentationControllerWillDismiss(_ presentationController: UIPresentationController) {
-        if let task = task, !task.text.isEmpty, originalTask != task {
+        if let task = task, originalTask != task {
             delegate?.taskDidChange(task: task)
         } else if task == nil, !taskText.isEmpty {
             delegate?.create(taskText: taskText)
