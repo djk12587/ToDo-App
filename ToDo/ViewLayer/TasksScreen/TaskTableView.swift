@@ -22,6 +22,7 @@ extension TasksViewController {
             self.userActionDelegate = userActionDelegate
             super.init(frame: .zero, style: .plain)
             delegate = self
+            register(TaskTableViewCell.self, forCellReuseIdentifier: "TaskTableViewCell")
         }
 
         required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -30,9 +31,9 @@ extension TasksViewController {
             return SwipeableDataSource(tableView: self, cellProvider: { [weak self] (tableView, indexPath, cellType) -> UITableViewCell? in
                 switch cellType {
                     case .task(let task):
-                        let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
-                        cell.textLabel?.text = task.text
-                        return cell
+                        guard let taskCell = tableView.dequeueReusableCell(withIdentifier: "TaskTableViewCell", for: indexPath) as? TaskTableViewCell else { return nil }
+                        taskCell.configure(for: task)
+                        return taskCell
                 }
             })
         }()
@@ -43,13 +44,14 @@ extension TasksViewController {
             userActionDelegate?.userTapped(task: selectedTask.getTask)
         }
 
-        func updateDataSource(tasks: [TaskModel], updateDidComplete: (() -> Void)? = nil) {
+        func updateDataSource(tasks: [TaskModel], animationStyle: RowAnimation = .automatic, updateDidComplete: (() -> Void)? = nil) {
             var snapShot = NSDiffableDataSourceSnapshot<SectionType, CellType>()
             snapShot.appendSections([.tasks])
             let cellTypes: [CellType] = tasks.compactMap { taskModel in
                 return .task(taskModel)
             }
             snapShot.appendItems(cellTypes, toSection: .tasks)
+            diffableDataSource.defaultRowAnimation = animationStyle
             diffableDataSource.apply(snapShot, animatingDifferences: true, completion: updateDidComplete)
         }
 
@@ -74,7 +76,7 @@ extension TasksViewController {
             var taskItems = diffableDataSource.snapshot().itemIdentifiers
             guard let taskCellToUpdateIndex = taskItems.firstIndex(where: { $0.getTask.id == task.id }) else { return  }
             taskItems[taskCellToUpdateIndex] = CellType.task(task)
-            updateDataSource(tasks: taskItems.getTasks, updateDidComplete: updateDidComplete)
+            updateDataSource(tasks: taskItems.getTasks, animationStyle: .fade, updateDidComplete: updateDidComplete)
         }
 
         func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
