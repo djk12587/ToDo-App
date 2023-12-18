@@ -13,7 +13,7 @@ protocol PersistedTaskServiceLayer: Sendable {
     func create(text: String) async throws -> TaskModel
     func update(taskModel: TaskModel) async throws
     func delete(taskModel: TaskModel) async throws
-    init() throws
+    init() async throws
 }
 
 actor PersistedTaskService: ModelActor, PersistedTaskServiceLayer {
@@ -21,15 +21,13 @@ actor PersistedTaskService: ModelActor, PersistedTaskServiceLayer {
     let modelContainer: ModelContainer
     let modelExecutor: ModelExecutor
 
-    init() throws {
+    init() async throws {
         let modelContainer = try ModelContainer(for: PersistedTask.self)
         self.modelContainer = modelContainer
-        self.modelExecutor = DefaultSerialModelExecutor(modelContext: ModelContext(modelContainer))
-        // think about how to get this to run on a background thread
-//        self.modelExecutor = await Task.detached {
-//            let context = ModelContext(modelContainer) // Creating the model context off the main thread ensures CRUD operations run on a background thread
-//            return DefaultSerialModelExecutor(modelContext: context)
-//        }.value
+        self.modelExecutor = await Task.detached {
+            let context = ModelContext(modelContainer) // Creating the ModelContext off the main thread ensures CRUD operations run on a background thread
+            return DefaultSerialModelExecutor(modelContext: context)
+        }.value
     }
 
     func getTasks() async throws -> [TaskModel] {

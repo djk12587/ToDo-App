@@ -38,6 +38,7 @@ class TaskViewController: UIViewController {
         let textView = UITextView()
         textView.text = task?.text
         textView.delegate = self
+        textView.textColor = task?.isCompleted == true ? .systemRed : .label
         view = textView
         self.textView = textView
     }
@@ -48,8 +49,9 @@ class TaskViewController: UIViewController {
         setupUI()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
         if showKeyboard {
             textView?.becomeFirstResponder()
         }
