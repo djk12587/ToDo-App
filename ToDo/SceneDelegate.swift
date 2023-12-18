@@ -21,15 +21,3 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         appCoordinator.showTasksViewController()
     }
 }
-
-private extension UIWindow {
-    func transition(to newRootViewController: UIViewController, completion: (() -> Void)? = nil) {
-        rootViewController = newRootViewController
-        UIView.transition(with: self,
-                          duration: 0.3,
-                          options: .transitionCrossDissolve,
-                          animations: nil) { _ in
-            completion?()
-        }
-    }
-}
