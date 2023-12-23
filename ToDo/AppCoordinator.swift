@@ -8,7 +8,6 @@
 import UIKit
 
 class AppCoordinator {
-
     func showTasksViewController(in mainWindow: UIWindow) {
         let tasksViewController = TasksViewController(viewModel: TasksViewModel(coordinatorDelegate: self))
         let navigationController = UINavigationController(rootViewController: tasksViewController)
