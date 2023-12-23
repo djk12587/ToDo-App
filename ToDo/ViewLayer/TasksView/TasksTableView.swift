@@ -7,18 +7,18 @@
 
 import UIKit
 
-protocol TaskTableViewDelegate: AnyObject {
+protocol TasksTableViewDelegate: AnyObject {
     func userSwipedToDeleted(task: TaskModel)
     func userUpdated(task: TaskModel)
     func userTapped(task: TaskModel)
 }
 
 extension TasksViewController {
-    class TaskTableView: UITableView, UITableViewDelegate {
+    class TasksTableView: UITableView, UITableViewDelegate {
 
-        private weak var userActionDelegate: TaskTableViewDelegate?
+        private weak var userActionDelegate: TasksTableViewDelegate?
 
-        init(userActionDelegate: TaskTableViewDelegate) {
+        init(userActionDelegate: TasksTableViewDelegate) {
             self.userActionDelegate = userActionDelegate
             super.init(frame: .zero, style: .plain)
             delegate = self
@@ -101,7 +101,7 @@ extension TasksViewController {
     }
 }
 
-extension TasksViewController.TaskTableView {
+extension TasksViewController.TasksTableView {
     // One small annoyance with diffable datasources... you have to subclass UITableViewDiffableDataSource to enable swiping of cells
     // https://stackoverflow.com/a/58116755
     private class SwipeableDataSource: UITableViewDiffableDataSource<SectionType, CellType> {
@@ -126,7 +126,7 @@ extension TasksViewController.TaskTableView {
     }
 }
 
-private extension Array where Element == TasksViewController.TaskTableView.CellType {
+private extension Array where Element == TasksViewController.TasksTableView.CellType {
     var getTasks: [TaskModel] {
         return compactMap { $0.getTask }
     }

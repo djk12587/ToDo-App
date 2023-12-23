@@ -10,7 +10,7 @@ import UIKit
 class TasksViewController: UIViewController {
 
     private weak var activityIndicator: UIActivityIndicatorView?
-    private weak var taskTableView: TaskTableView?
+    private weak var tasksTableView: TasksTableView?
     private let viewModel: TasksViewModel
 
     init(viewModel: TasksViewModel) {
@@ -22,9 +22,9 @@ class TasksViewController: UIViewController {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func loadView() {
-        let taskTableView = TaskTableView(userActionDelegate: self)
-        view = taskTableView
-        self.taskTableView = taskTableView
+        let tasksTableView = TasksTableView(userActionDelegate: self)
+        view = tasksTableView
+        self.tasksTableView = tasksTableView
     }
 
     override func viewDidLoad() {
@@ -64,7 +64,7 @@ class TasksViewController: UIViewController {
     }
 }
 
-extension TasksViewController: TaskTableViewDelegate {
+extension TasksViewController: TasksTableViewDelegate {
 
     func userTapped(task: TaskModel) {
         viewModel.open(task, presentOn: self)
@@ -84,7 +84,7 @@ extension TasksViewController: TasksViewModelViewDelegate {
     func userCreated(result: Result<TaskModel, Error>) {
         switch result {
             case .success(let task):
-                taskTableView?.insert(new: task)
+                tasksTableView?.insert(new: task)
             case .failure(let error):
                 let alertController = UIAlertController(title: "Failed to create task", message: error.localizedDescription, preferredStyle: .alert)
                 alertController.addAction(UIAlertAction(title: "ok", style: .default))
@@ -97,7 +97,7 @@ extension TasksViewController: TasksViewModelViewDelegate {
 
         switch result {
             case .success(let tasks):
-                taskTableView?.updateDataSource(tasks: tasks)
+                tasksTableView?.updateDataSource(tasks: tasks)
             case .failure(let error):
                 let alertController = UIAlertController(title: "Failed to get tasks", message: error.localizedDescription, preferredStyle: .alert)
                 let retryAction = UIAlertAction(title: "ok", style: .default) { [weak self] _ in
@@ -111,7 +111,7 @@ extension TasksViewController: TasksViewModelViewDelegate {
     func userDeleted(result: Result<TaskModel, Error>) {
         switch result {
             case .success(let task):
-                taskTableView?.delete(task: task)
+                tasksTableView?.delete(task: task)
             case .failure(let error):
                 let alertController = UIAlertController(title: "Failed to delete task", message: error.localizedDescription, preferredStyle: .alert)
                 alertController.addAction(UIAlertAction(title: "ok", style: .default))
@@ -122,7 +122,7 @@ extension TasksViewController: TasksViewModelViewDelegate {
     func userUpdated(result: Result<TaskModel, Error>) {
         switch result {
             case .success(let task):
-                taskTableView?.update(task: task)
+                tasksTableView?.update(task: task)
             case .failure(let error):
                 let alertController = UIAlertController(title: "Failed to update task", message: error.localizedDescription, preferredStyle: .alert)
                 alertController.addAction(UIAlertAction(title: "ok", style: .default))
