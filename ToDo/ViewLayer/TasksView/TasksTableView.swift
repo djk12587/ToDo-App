@@ -55,30 +55,6 @@ extension TasksViewController {
             diffableDataSource.apply(snapShot, animatingDifferences: true, completion: updateDidComplete)
         }
 
-        func insert(new task: TaskModel, updateDidComplete: (() -> Void)? = nil) {
-            var taskItems = diffableDataSource.snapshot().itemIdentifiers
-            guard !taskItems.isEmpty else {
-                updateDataSource(tasks: [task], updateDidComplete: updateDidComplete)
-                return
-            }
-            taskItems.insert(.task(task), at: 0)
-            updateDataSource(tasks: taskItems.getTasks, updateDidComplete: updateDidComplete)
-        }
-
-        func delete(task: TaskModel, updateDidComplete: (() -> Void)? = nil) {
-            var taskItems = diffableDataSource.snapshot().itemIdentifiers
-            guard let indexOfTaskToDelete = taskItems.firstIndex(of: CellType.task(task)) else { return }
-            taskItems.remove(at: indexOfTaskToDelete)
-            updateDataSource(tasks: taskItems.getTasks, updateDidComplete: updateDidComplete)
-        }
-
-        func update(task: TaskModel, updateDidComplete: (() -> Void)? = nil) {
-            var taskItems = diffableDataSource.snapshot().itemIdentifiers
-            guard let taskCellToUpdateIndex = taskItems.firstIndex(where: { $0.getTask.id == task.id }) else { return  }
-            taskItems[taskCellToUpdateIndex] = CellType.task(task)
-            updateDataSource(tasks: taskItems.getTasks, animationStyle: .fade, updateDidComplete: updateDidComplete)
-        }
-
         func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
             var task = diffableDataSource.snapshot().itemIdentifiers[indexPath.row].getTask
 

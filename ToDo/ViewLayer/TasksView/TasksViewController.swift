@@ -80,63 +80,21 @@ extension TasksViewController: TasksTableViewDelegate {
 }
 
 extension TasksViewController: TasksViewModelViewDelegate {
-
-    func userCreated(result: Result<TaskModel, Error>) {
-        switch result {
-            case .success(let task):
-                tasksTableView?.insert(new: task)
-            case .failure(let error):
-                let alertController = UIAlertController(title: "Failed to create task", message: error.localizedDescription, preferredStyle: .alert)
-                alertController.addAction(UIAlertAction(title: "ok", style: .default))
-                present(alertController, animated: true)
+    func handleError(title: String, message: String, retryGetTasks: Bool) {
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        if retryGetTasks {
+            let retryAction = UIAlertAction(title: "ok", style: .default) { [weak self] _ in
+                self?.getTasks()
+            }
+            alertController.addAction(retryAction)
+        } else {
+            alertController.addAction(UIAlertAction(title: "ok", style: .default))
         }
+        present(alertController, animated: true)
     }
 
-    func retrievedTasks(result: Result<[TaskModel], Error>) {
+    func tasksDidUpdate(tasks: [TaskModel]) {
         activityIndicator?.stopAnimating()
-
-        switch result {
-            case .success(let tasks):
-                tasksTableView?.updateDataSource(tasks: tasks)
-            case .failure(let error):
-                let alertController = UIAlertController(title: "Failed to get tasks", message: error.localizedDescription, preferredStyle: .alert)
-                let retryAction = UIAlertAction(title: "ok", style: .default) { [weak self] _ in
-                    self?.getTasks()
-                }
-                alertController.addAction(retryAction)
-                present(alertController, animated: true)
-        }
-    }
-
-    func userDeleted(result: Result<TaskModel, Error>) {
-        switch result {
-            case .success(let task):
-                tasksTableView?.delete(task: task)
-            case .failure(let error):
-                let alertController = UIAlertController(title: "Failed to delete task", message: error.localizedDescription, preferredStyle: .alert)
-                alertController.addAction(UIAlertAction(title: "ok", style: .default))
-                present(alertController, animated: true)
-        }
-    }
-
-    func userUpdated(result: Result<TaskModel, Error>) {
-        switch result {
-            case .success(let task):
-                tasksTableView?.update(task: task)
-            case .failure(let error):
-                let alertController = UIAlertController(title: "Failed to update task", message: error.localizedDescription, preferredStyle: .alert)
-                alertController.addAction(UIAlertAction(title: "ok", style: .default))
-                present(alertController, animated: true)
-        }
-    }
-}
-
-extension TasksViewController: TaskViewControllerDelegate {
-    func taskDidChange(task: TaskModel) {
-        viewModel.update(task)
-    }
-    
-    func createTask(text: String) {
-        viewModel.createTask(text: text)
+        tasksTableView?.updateDataSource(tasks: tasks)
     }
 }

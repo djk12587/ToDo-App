@@ -18,15 +18,13 @@ class AppCoordinator {
 }
 
 extension AppCoordinator: TasksViewModelCoordinatorDelegate {
-    func userWantsToCreateTask(presentOn tasksViewController: UIViewController & TaskViewControllerDelegate) {
-        let taskViewController = TaskViewController(viewModel: TaskViewModel(edit: nil),
-                                                    delegate: tasksViewController)
+    func userWantsToCreateTask(presentOn tasksViewController: UIViewController, tasksModel: TasksModel) {
+        let taskViewController = TaskViewController(viewModel: TaskViewModel(edit: nil, model: tasksModel))
         tasksViewController.present(taskViewController, animated: true)
     }
-
-    func userTapped(task: TaskModel, presentOn tasksViewController: UIViewController & TaskViewControllerDelegate) {
-        let taskViewController = TaskViewController(viewModel: TaskViewModel(edit: task),
-                                                    delegate: tasksViewController)
+    
+    func userTapped(task: TaskModel, presentOn tasksViewController: UIViewController, tasksModel: TasksModel) {
+        let taskViewController = TaskViewController(viewModel: TaskViewModel(edit: task, model: tasksModel))
         tasksViewController.present(taskViewController, animated: true)
     }
 }

@@ -7,23 +7,15 @@
 
 import UIKit
 
-protocol TaskViewControllerDelegate: AnyObject {
-    func taskDidChange(task: TaskModel)
-    func createTask(text: String)
-}
-
 class TaskViewController: UIViewController {
 
     private weak var textView: UITextView?
     private var viewModel: TaskViewModel
-    private weak var delegate: TaskViewControllerDelegate?
 
-    init(viewModel: TaskViewModel, delegate: TaskViewControllerDelegate?) {
+    init(viewModel: TaskViewModel) {
         self.viewModel = viewModel
-        self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
         presentationController?.delegate = self
-        self.viewModel.viewDelegate = self
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -55,15 +47,5 @@ extension TaskViewController: UITextViewDelegate {
 extension TaskViewController: UIAdaptivePresentationControllerDelegate {
     func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
         viewModel.viewDidDismiss()
-    }
-}
-
-extension TaskViewController: TaskViewModelViewDelegate {
-    func taskDidChange(task: TaskModel) {
-        delegate?.taskDidChange(task: task)
-    }
-    
-    func createTask(text: String) {
-        delegate?.createTask(text: text)
     }
 }

@@ -7,17 +7,16 @@
 
 import Foundation
 import UIKit
+import Combine
 
 protocol TasksViewModelCoordinatorDelegate: AnyObject {
-    func userWantsToCreateTask(presentOn tasksViewController: UIViewController & TaskViewControllerDelegate)
-    func userTapped(task: TaskModel, presentOn tasksViewController: UIViewController & TaskViewControllerDelegate)
+    func userWantsToCreateTask(presentOn tasksViewController: UIViewController, tasksModel: TasksModel)
+    func userTapped(task: TaskModel, presentOn tasksViewController: UIViewController, tasksModel: TasksModel)
 }
 
 protocol TasksViewModelViewDelegate: AnyObject {
-    @MainActor func retrievedTasks(result: Result<[TaskModel], Error>)
-    @MainActor func userCreated(result: Result<TaskModel, Error>)
-    @MainActor func userDeleted(result: Result<TaskModel, Error>)
-    @MainActor func userUpdated(result: Result<TaskModel, Error>)
+    func tasksDidUpdate(tasks: [TaskModel])
+    func handleError(title: String, message: String, retryGetTasks: Bool)
 }
 
 class TasksViewModel {
@@ -25,76 +24,50 @@ class TasksViewModel {
     private weak var coordinatorDelegate: TasksViewModelCoordinatorDelegate?
     weak var viewDelegate: TasksViewModelViewDelegate?
 
-    private var _service: PersistedTaskServiceType?
-    private var service: PersistedTaskServiceType {
-        get async throws {
-            if let service = _service {
-                return service
-            } else {
-                let service = try await PersistedTaskService()
-                _service = service
-                return service
-            }
-        }
-    }
+    private var model: TasksModel
+    private var bag: Set<AnyCancellable> = []
 
     init(coordinatorDelegate: TasksViewModelCoordinatorDelegate,
          viewDelegate: TasksViewModelViewDelegate? = nil,
          service: PersistedTaskServiceType? = nil) {
-        _service = service
         self.coordinatorDelegate = coordinatorDelegate
         self.viewDelegate = viewDelegate
+        model = TasksModel(tasks: [], service: service)
+        setupObserveable()
     }
 
-    func showCreateNewTaskScreen(presentOn tasksViewController: UIViewController & TaskViewControllerDelegate) {
-        coordinatorDelegate?.userWantsToCreateTask(presentOn: tasksViewController)
+    private func setupObserveable() {
+        model.$tasks.receive(on: DispatchQueue.main).sink { [weak self] tasks in
+            self?.viewDelegate?.tasksDidUpdate(tasks: tasks)
+        }.store(in: &bag)
+
+        model.$error.receive(on: DispatchQueue.main).sink { [weak self] errorDetails in
+            guard let (title, message, retryGetTasks) = errorDetails else { return }
+            self?.viewDelegate?.handleError(title: title, message: message, retryGetTasks: retryGetTasks)
+        }.store(in: &bag)
     }
 
-    func open(_ task: TaskModel, presentOn tasksViewController: UIViewController & TaskViewControllerDelegate) {
-        coordinatorDelegate?.userTapped(task: task, presentOn: tasksViewController)
+    func showCreateNewTaskScreen(presentOn tasksViewController: UIViewController) {
+        coordinatorDelegate?.userWantsToCreateTask(presentOn: tasksViewController, tasksModel: model)
+    }
+
+    func open(_ task: TaskModel, presentOn tasksViewController: UIViewController) {
+        coordinatorDelegate?.userTapped(task: task, presentOn: tasksViewController, tasksModel: model)
     }
 
     func getTasks() {
-        Task(priority: .userInitiated) {
-            do {
-                let tasks = try await service.getTasks()
-                await viewDelegate?.retrievedTasks(result: .success(tasks))
-            } catch {
-                await viewDelegate?.retrievedTasks(result: .failure(error))
-            }
-        }
+        model.getTasks()
     }
 
     func createTask(text: String) {
-        Task(priority: .userInitiated) {
-            do {
-                let task = try await service.create(text: text)
-                await viewDelegate?.userCreated(result: .success(task))
-            } catch {
-                await viewDelegate?.userCreated(result: .failure(error))
-            }
-        }
+        model.createTask(text: text)
     }
 
     func delete(_ task: TaskModel) {
-        Task(priority: .userInitiated) {
-            do {
-                try await service.delete(taskModel: task)
-                await viewDelegate?.userDeleted(result: .success(task))
-            } catch {
-                await viewDelegate?.userDeleted(result: .failure(error))
-            }
-        }
+        model.delete(task: task)
     }
 
     func update(_ task: TaskModel) {
-        Task(priority: .userInitiated) {
-            do {
-                try await service.update(taskModel: task)
-                await viewDelegate?.userUpdated(result: .success(task))
-            } catch {
-                await viewDelegate?.userUpdated(result: .failure(error))
-            }
-        }
+        model.update(task: task)
     }
 }
